@@ -174,6 +174,9 @@ function verificationWarning(processes, choice, options, settings, rrQuantum) {
     const competitorOptions = {
       ...commonOptions,
       ...(competitor === "Round Robin" ? { quantum: rrQuantum } : {}),
+      ...(competitor === "Priority" && options.agingInterval !== undefined
+        ? { agingInterval: options.agingInterval }
+        : {}),
     };
     const competitorValue = metricForGoal(
       calculateMetrics(runAlgorithm(competitor, processes, competitorOptions)),
