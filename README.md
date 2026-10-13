@@ -52,6 +52,22 @@ SRTF, Round Robin, and preemptive Priority accept `contextSwitchCost` (default 0
 
 Priority also accepts `agingInterval`, a positive integer, in both modes. After every complete interval of accumulated time waiting in the ready queue, effective priority improves by 1 (its number decreases). Aging stops while the process runs. The original priority value in `processResults` remains unchanged. Without `agingInterval`, aging is disabled.
 
+## Metrics
+
+Pass any scheduler's `{ gantt, processResults }` to `calculateMetrics` from `src/engine/metrics.js`. The function returns copies of the per-process results, averages for waiting, turnaround, and response time, and these workload measures:
+
+| Measure                          | Definition                                                                                                            |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `makespan`                       | End of the last Gantt interval, measured from time 0.                                                                 |
+| `busyTime`                       | Sum of process execution intervals.                                                                                   |
+| `idleTime` / `contextSwitchTime` | Sum of the corresponding Gantt intervals.                                                                             |
+| `cpuUtilization`                 | `busyTime / makespan`, a fraction from 0 to 1. Idle and context-switch time remain in the denominator.                |
+| `throughput`                     | Completed process count divided by makespan, in processes per time unit.                                              |
+| `maximumWaitingTime`             | Largest per-process waiting time.                                                                                     |
+| `jainsFairnessIndex`             | `(sum(waiting))² / (count × sum(waiting²))`. Equal waits score 1; when all waits are zero, the score is defined as 1. |
+
+The metrics function does not change the schedule. Its fairness measure describes how evenly waiting time is distributed; it does not imply that a larger wait is desirable.
+
 ## Development batches
 
-The project is built in approved batches. Batch 0 establishes the app shell, shared process validation, configuration defaults, and tests. Batch 1 adds FCFS, non-preemptive SJF, and non-preemptive Priority. Batch 2 adds SRTF, Round Robin, preemptive Priority, context-switch overhead, and aging. Comparison and evaluation follow in later approved batches.
+The project is built in approved batches. Batch 0 establishes the app shell, shared process validation, configuration defaults, and tests. Batch 1 adds FCFS, non-preemptive SJF, and non-preemptive Priority. Batch 2 adds SRTF, Round Robin, preemptive Priority, context-switch overhead, and aging. Batch 3 adds metrics and randomized scheduling invariants. Comparison and evaluation follow in later approved batches.
