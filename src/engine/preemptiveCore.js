@@ -4,11 +4,12 @@ import {
   comparePid,
   contextSwitchCostFrom,
   processResult,
+  safeAddTime,
 } from "./schedulerUtils.js";
 
 /**
  * Simulate one integer time unit per step so arrivals and aging can change the
- * winner at any tick. A dispatch is reconsidered after context-switch overhead.
+ * winner at any tick. A switch commits to its selected process before overhead.
  */
 export function runPreemptive(processes, options, compare) {
   assertValidProcesses(processes);
@@ -53,23 +54,17 @@ export function runPreemptive(processes, options, compare) {
       lastRunPid !== next.process.pid &&
       contextSwitchCost > 0
     ) {
-      appendSegment(
-        gantt,
-        "CONTEXT_SWITCH",
-        time,
-        time + contextSwitchCost,
-        "CONTEXT_SWITCH",
-      );
-      time += contextSwitchCost;
-      lastRunPid = null;
-      continue;
+      const switchEnd = safeAddTime(time, contextSwitchCost);
+      appendSegment(gantt, "CONTEXT_SWITCH", time, switchEnd, "CONTEXT_SWITCH");
+      time = switchEnd;
     }
 
     if (next.start === null) next.start = time;
-    appendSegment(gantt, next.process.pid, time, time + 1);
+    const tickEnd = safeAddTime(time, 1);
+    appendSegment(gantt, next.process.pid, time, tickEnd);
     next.remaining -= 1;
     next.executed += 1;
-    time += 1;
+    time = tickEnd;
     lastRunPid = next.process.pid;
     if (next.remaining === 0) {
       next.completion = time;

@@ -5,8 +5,12 @@ import { runPreemptive } from "./preemptiveCore.js";
 // A running process keeps the priority it has earned, but does not age further.
 function effectivePriority(process, waiting, agingInterval) {
   return agingInterval == null
-    ? process.priority
-    : process.priority - Math.floor(waiting / agingInterval);
+    ? BigInt(process.priority)
+    : BigInt(process.priority) - BigInt(waiting) / BigInt(agingInterval);
+}
+
+function compareEffectivePriority(a, b) {
+  return a < b ? -1 : a > b ? 1 : 0;
 }
 
 /**
@@ -17,7 +21,7 @@ export function schedulePriority(processes, options = {}) {
   const { preemptive = false, agingInterval } = options;
   if (
     agingInterval != null &&
-    (!Number.isInteger(agingInterval) || agingInterval <= 0)
+    (!Number.isSafeInteger(agingInterval) || agingInterval <= 0)
   ) {
     throw new RangeError("agingInterval must be a positive integer.");
   }
@@ -26,9 +30,9 @@ export function schedulePriority(processes, options = {}) {
     return runPreemptive(processes, options, (a, b, time) => {
       const aWaiting = time - a.process.arrival - a.executed;
       const bWaiting = time - b.process.arrival - b.executed;
-      return (
-        effectivePriority(a.process, aWaiting, agingInterval) -
-        effectivePriority(b.process, bWaiting, agingInterval)
+      return compareEffectivePriority(
+        effectivePriority(a.process, aWaiting, agingInterval),
+        effectivePriority(b.process, bWaiting, agingInterval),
       );
     });
   }
@@ -36,9 +40,9 @@ export function schedulePriority(processes, options = {}) {
   return scheduleNonPreemptive(processes, (a, b, time) => {
     const aWaiting = time - a.arrival;
     const bWaiting = time - b.arrival;
-    return (
-      effectivePriority(a, aWaiting, agingInterval) -
-      effectivePriority(b, bWaiting, agingInterval)
+    return compareEffectivePriority(
+      effectivePriority(a, aWaiting, agingInterval),
+      effectivePriority(b, bWaiting, agingInterval),
     );
   });
 }

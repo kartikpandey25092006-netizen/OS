@@ -1,34 +1,59 @@
-import { describe, expect, it } from 'vitest';
-import { validateProcesses } from '../../src/engine/validate.js';
+import { describe, expect, it } from "vitest";
+import { validateProcesses } from "../../src/engine/validate.js";
 
-const validProcess = { pid: 'P1', arrival: 0, burst: 5, priority: 1 };
+const validProcess = { pid: "P1", arrival: 0, burst: 5, priority: 1 };
 
-describe('validateProcesses', () => {
-  it('accepts a valid non-empty workload', () => {
-    expect(validateProcesses([validProcess])).toEqual({ valid: true, errors: [] });
+describe("validateProcesses", () => {
+  it("accepts a valid non-empty workload", () => {
+    expect(validateProcesses([validProcess])).toEqual({
+      valid: true,
+      errors: [],
+    });
   });
 
-  it('rejects empty workloads', () => {
-    expect(validateProcesses([]).errors).toContain('Enter at least one process.');
+  it("rejects empty workloads", () => {
+    expect(validateProcesses([]).errors).toContain(
+      "Enter at least one process.",
+    );
   });
 
-  it('rejects duplicate PIDs and invalid numeric fields', () => {
+  it("rejects duplicate PIDs and invalid numeric fields", () => {
     const result = validateProcesses([
       validProcess,
-      { pid: 'P1', arrival: -1, burst: 0, priority: 1.5 },
+      { pid: "P1", arrival: -1, burst: 0, priority: 1.5 },
     ]);
     expect(result.valid).toBe(false);
     expect(result.errors).toContain('Row 2: PID "P1" must be unique.');
-    expect(result.errors).toContain('Row 2: arrival must be a non-negative integer.');
-    expect(result.errors).toContain('Row 2: burst must be a positive integer.');
-    expect(result.errors).toContain('Row 2: priority must be an integer.');
+    expect(result.errors).toContain(
+      "Row 2: arrival must be a non-negative integer.",
+    );
+    expect(result.errors).toContain("Row 2: burst must be a positive integer.");
+    expect(result.errors).toContain("Row 2: priority must be an integer.");
   });
 
-  it('reserves Gantt segment PIDs for idle and context-switch time', () => {
-    for (const pid of ['IDLE', 'CONTEXT_SWITCH']) {
+  it("reserves Gantt segment PIDs for idle and context-switch time", () => {
+    for (const pid of ["IDLE", "CONTEXT_SWITCH"]) {
       const result = validateProcesses([{ ...validProcess, pid }]);
       expect(result.valid).toBe(false);
       expect(result.errors[0]).toContain(`PID "${pid}" is reserved`);
     }
+  });
+
+  it("rejects unsafe integers and a workload whose minimum finish cannot be represented", () => {
+    expect(
+      validateProcesses([{ ...validProcess, arrival: 2 ** 53 }]).valid,
+    ).toBe(false);
+    expect(validateProcesses([{ ...validProcess, burst: 2 ** 53 }]).valid).toBe(
+      false,
+    );
+    expect(
+      validateProcesses([{ ...validProcess, priority: 2 ** 53 }]).valid,
+    ).toBe(false);
+    expect(
+      validateProcesses([
+        { ...validProcess, burst: Number.MAX_SAFE_INTEGER },
+        { ...validProcess, pid: "P2", burst: 1 },
+      ]).errors,
+    ).toContain("Total execution exceeds the safe integer timeline.");
   });
 });

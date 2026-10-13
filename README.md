@@ -21,7 +21,7 @@ Run checks with `npm test` and `npm run lint`; create a production build with `n
 ## Conventions
 
 - Priority uses lower numbers for higher priority.
-- Arrival and burst times and priorities are integers; arrival is non-negative and burst is positive. A workload needs at least one process and unique, non-empty string PIDs. `IDLE` and `CONTEXT_SWITCH` are reserved Gantt PIDs.
+- Arrival and burst times and priorities are safe integers; arrival is non-negative and burst is positive. A workload needs at least one process and unique, non-empty string PIDs. `IDLE` and `CONTEXT_SWITCH` are reserved Gantt PIDs. Schedulers reject a timeline that would exceed JavaScript's safe integer range.
 - Scheduling ties use earlier arrival first, then lower PID. PID comparison is numeric-aware: `P2` precedes `P10`. If two PIDs compare equally, their character order decides.
 - Idle periods are explicit `IDLE` intervals and count against CPU utilization.
 - Adjacent Gantt intervals for the same process are merged.
@@ -48,7 +48,7 @@ For all three, only arrived processes are eligible. If none has arrived, time ad
 - **Round Robin** (`src/engine/roundRobin.js`): run each ready process for up to `options.quantum` time units (default 4). New arrivals join the queue in arrival/PID order. When an arrival coincides with quantum expiry, it enters before the preempted process is requeued. A lone process can keep running across quantum boundaries; those adjacent Gantt intervals merge.
 - **Preemptive Priority** (`schedulePriority(processes, { preemptive: true })`): each time unit, run the ready process with the lowest effective priority number.
 
-SRTF, Round Robin, and preemptive Priority accept `contextSwitchCost` (default 0). SRTF and preemptive Priority reconsider the winner after switch overhead because arrivals or aging may have changed the ready set. Round Robin keeps its selected queue entry; arrivals during the switch join the back of the queue.
+SRTF, Round Robin, and preemptive Priority accept `contextSwitchCost` (default 0). A scheduling choice commits when the switch begins. Arrivals and aging during the switch affect the next decision after the selected process has run for one time unit. In Round Robin, arrivals during the switch join the back of the queue.
 
 Priority also accepts `agingInterval`, a positive integer, in both modes. After every complete interval of accumulated time waiting in the ready queue, effective priority improves by 1 (its number decreases). Aging stops while the process runs. The original priority value in `processResults` remains unchanged. Without `agingInterval`, aging is disabled.
 

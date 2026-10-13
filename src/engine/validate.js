@@ -24,14 +24,34 @@ export function validateProcesses(processes) {
     }
     if (!Number.isInteger(arrival) || arrival < 0) {
       errors.push(`Row ${row}: arrival must be a non-negative integer.`);
+    } else if (!Number.isSafeInteger(arrival)) {
+      errors.push(`Row ${row}: arrival exceeds the safe integer range.`);
     }
     if (!Number.isInteger(burst) || burst <= 0) {
       errors.push(`Row ${row}: burst must be a positive integer.`);
+    } else if (!Number.isSafeInteger(burst)) {
+      errors.push(`Row ${row}: burst exceeds the safe integer range.`);
     }
     if (!Number.isInteger(priority)) {
       errors.push(`Row ${row}: priority must be an integer.`);
+    } else if (!Number.isSafeInteger(priority)) {
+      errors.push(`Row ${row}: priority exceeds the safe integer range.`);
     }
   });
+
+  if (errors.length === 0) {
+    const earliestArrival = processes.reduce(
+      (earliest, { arrival }) => Math.min(earliest, arrival),
+      Infinity,
+    );
+    const minimumFinish = processes.reduce(
+      (time, { burst }) => time + BigInt(burst),
+      BigInt(earliestArrival),
+    );
+    if (minimumFinish > BigInt(Number.MAX_SAFE_INTEGER)) {
+      errors.push("Total execution exceeds the safe integer timeline.");
+    }
+  }
 
   return { valid: errors.length === 0, errors };
 }

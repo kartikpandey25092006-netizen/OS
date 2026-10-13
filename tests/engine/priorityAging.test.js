@@ -85,4 +85,26 @@ describe("schedulePriority preemption and aging", () => {
     expect(() => schedulePriority(processes, { agingInterval: 0 })).toThrow();
     expect(() => schedulePriority(processes, { agingInterval: 1.5 })).toThrow();
   });
+
+  it("commits a switch before aging can change the next winner", () => {
+    const { gantt } = schedulePriority(
+      [
+        { pid: "A", arrival: 0, burst: 2, priority: 1 },
+        { pid: "B", arrival: 1, burst: 2, priority: 0 },
+      ],
+      { preemptive: true, agingInterval: 2, contextSwitchCost: 1 },
+    );
+
+    // At t=3 A wins the priority tie and the switch to A is committed.
+    // B ages during the overhead, then can be selected after A's next tick.
+    expect(gantt).toEqual([
+      { pid: "A", start: 0, end: 1 },
+      { pid: "CONTEXT_SWITCH", type: "CONTEXT_SWITCH", start: 1, end: 2 },
+      { pid: "B", start: 2, end: 3 },
+      { pid: "CONTEXT_SWITCH", type: "CONTEXT_SWITCH", start: 3, end: 4 },
+      { pid: "A", start: 4, end: 5 },
+      { pid: "CONTEXT_SWITCH", type: "CONTEXT_SWITCH", start: 5, end: 6 },
+      { pid: "B", start: 6, end: 7 },
+    ]);
+  });
 });

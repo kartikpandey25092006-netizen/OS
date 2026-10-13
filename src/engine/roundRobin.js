@@ -5,6 +5,7 @@ import {
   comparePid,
   contextSwitchCostFrom,
   processResult,
+  safeAddTime,
 } from "./schedulerUtils.js";
 
 /**
@@ -14,7 +15,7 @@ import {
 export function scheduleRoundRobin(processes, options = {}) {
   assertValidProcesses(processes);
   const quantum = options.quantum ?? DEFAULT_OPTIONS.roundRobinQuantum;
-  if (!Number.isInteger(quantum) || quantum <= 0) {
+  if (!Number.isSafeInteger(quantum) || quantum <= 0) {
     throw new RangeError("quantum must be a positive integer.");
   }
   const contextSwitchCost = contextSwitchCostFrom(options);
@@ -60,21 +61,17 @@ export function scheduleRoundRobin(processes, options = {}) {
       lastRunPid !== current.process.pid &&
       contextSwitchCost > 0
     ) {
-      appendSegment(
-        gantt,
-        "CONTEXT_SWITCH",
-        time,
-        time + contextSwitchCost,
-        "CONTEXT_SWITCH",
-      );
-      time += contextSwitchCost;
+      const switchEnd = safeAddTime(time, contextSwitchCost);
+      appendSegment(gantt, "CONTEXT_SWITCH", time, switchEnd, "CONTEXT_SWITCH");
+      time = switchEnd;
       enqueueArrivals();
     }
 
     if (current.start === null) current.start = time;
     const duration = Math.min(quantum, current.remaining);
-    appendSegment(gantt, current.process.pid, time, time + duration);
-    time += duration;
+    const sliceEnd = safeAddTime(time, duration);
+    appendSegment(gantt, current.process.pid, time, sliceEnd);
+    time = sliceEnd;
     current.remaining -= duration;
     lastRunPid = current.process.pid;
 

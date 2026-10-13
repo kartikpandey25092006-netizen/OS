@@ -3,6 +3,7 @@ import {
   assertValidProcesses,
   comparePid,
   processResult,
+  safeAddTime,
 } from "./schedulerUtils.js";
 
 /**
@@ -37,7 +38,7 @@ export function scheduleNonPreemptive(processes, rank) {
     pending.splice(pending.indexOf(process), 1);
 
     const start = time;
-    time += process.burst;
+    time = safeAddTime(time, process.burst);
     appendSegment(gantt, process.pid, start, time);
     resultsByPid.set(process.pid, processResult(process, start, time));
   }

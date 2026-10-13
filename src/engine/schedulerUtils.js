@@ -32,10 +32,18 @@ export function assertValidProcesses(processes) {
 
 export function contextSwitchCostFrom(options = {}) {
   const cost = options.contextSwitchCost ?? DEFAULT_OPTIONS.contextSwitchCost;
-  if (!Number.isInteger(cost) || cost < 0) {
+  if (!Number.isSafeInteger(cost) || cost < 0) {
     throw new RangeError("contextSwitchCost must be a non-negative integer.");
   }
   return cost;
+}
+
+export function safeAddTime(time, duration) {
+  const end = time + duration;
+  if (!Number.isSafeInteger(end)) {
+    throw new RangeError("Scheduling timeline exceeds the safe integer range.");
+  }
+  return end;
 }
 
 export function processResult(process, start, completion) {
