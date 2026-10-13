@@ -15,8 +15,8 @@ export function validateProcesses(processes) {
     const { pid, arrival, burst, priority } = process;
     if (typeof pid !== "string" || pid.trim() === "") {
       errors.push(`Row ${row}: PID must be a non-empty string.`);
-    } else if (pid === "IDLE") {
-      errors.push(`Row ${row}: PID "IDLE" is reserved for idle CPU time.`);
+    } else if (pid === "IDLE" || pid === "CONTEXT_SWITCH") {
+      errors.push(`Row ${row}: PID "${pid}" is reserved for Gantt segments.`);
     } else if (seen.has(pid)) {
       errors.push(`Row ${row}: PID "${pid}" must be unique.`);
     } else {

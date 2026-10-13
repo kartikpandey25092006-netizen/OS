@@ -23,4 +23,12 @@ describe('validateProcesses', () => {
     expect(result.errors).toContain('Row 2: burst must be a positive integer.');
     expect(result.errors).toContain('Row 2: priority must be an integer.');
   });
+
+  it('reserves Gantt segment PIDs for idle and context-switch time', () => {
+    for (const pid of ['IDLE', 'CONTEXT_SWITCH']) {
+      const result = validateProcesses([{ ...validProcess, pid }]);
+      expect(result.valid).toBe(false);
+      expect(result.errors[0]).toContain(`PID "${pid}" is reserved`);
+    }
+  });
 });

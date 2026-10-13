@@ -6,10 +6,17 @@ export const DEFAULT_OPTIONS = Object.freeze({
     cvHigh: 0.45,
     cvLow: 0.25,
     staggered: 0.3,
-    moderateDefault: 'SJF',
-    rrQuantum: 'median',
+    moderateDefault: "SJF",
+    rrQuantum: "median",
   }),
   contextSwitchCost: 0,
+  roundRobinQuantum: 4,
 });
 
-export const ALGORITHM_NAMES = Object.freeze(['FCFS', 'SJF', 'SRTF', 'Priority', 'Round Robin']);
+export const ALGORITHM_NAMES = Object.freeze([
+  "FCFS",
+  "SJF",
+  "SRTF",
+  "Priority",
+  "Round Robin",
+]);
