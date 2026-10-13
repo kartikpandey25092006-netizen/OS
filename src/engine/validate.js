@@ -2,19 +2,21 @@
 export function validateProcesses(processes) {
   const errors = [];
   if (!Array.isArray(processes) || processes.length === 0) {
-    return { valid: false, errors: ['Enter at least one process.'] };
+    return { valid: false, errors: ["Enter at least one process."] };
   }
 
   const seen = new Set();
   processes.forEach((process, index) => {
     const row = index + 1;
-    if (!process || typeof process !== 'object') {
+    if (!process || typeof process !== "object") {
       errors.push(`Row ${row}: process must be an object.`);
       return;
     }
     const { pid, arrival, burst, priority } = process;
-    if (typeof pid !== 'string' || pid.trim() === '') {
+    if (typeof pid !== "string" || pid.trim() === "") {
       errors.push(`Row ${row}: PID must be a non-empty string.`);
+    } else if (pid === "IDLE") {
+      errors.push(`Row ${row}: PID "IDLE" is reserved for idle CPU time.`);
     } else if (seen.has(pid)) {
       errors.push(`Row ${row}: PID "${pid}" must be unique.`);
     } else {

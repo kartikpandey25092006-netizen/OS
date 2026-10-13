@@ -21,13 +21,25 @@ Run checks with `npm test` and `npm run lint`; create a production build with `n
 ## Conventions
 
 - Priority uses lower numbers for higher priority.
-- Arrival and burst times and priorities are integers; arrival is non-negative and burst is positive. A workload needs at least one process and PIDs must be unique.
-- Scheduling ties use earlier arrival first, then lower PID.
+- Arrival and burst times and priorities are integers; arrival is non-negative and burst is positive. A workload needs at least one process and unique, non-empty string PIDs. `IDLE` is reserved for CPU idle time.
+- Scheduling ties use earlier arrival first, then lower PID. PID comparison is numeric-aware: `P2` precedes `P10`. If two PIDs compare equally, their character order decides.
 - Idle periods are explicit `IDLE` intervals and count against CPU utilization.
 - Adjacent Gantt intervals for the same process are merged.
 - Burst coefficient of variation uses population standard deviation.
 - Any configurable selector thresholds are centralized in `src/engine/config.js`.
 
+## Non-preemptive schedulers
+
+`src/engine/fcfs.js`, `sjf.js`, and `priority.js` each export `schedule(processes, options)` and a named variant (`scheduleFCFS`, `scheduleSJF`, or `schedulePriority`). Every scheduler validates its input and throws a `RangeError` when it is invalid. They do not mutate the input.
+
+Processes have the shape `{ pid, arrival, burst, priority }`. All three schedulers return `{ gantt, processResults }`. The Gantt array contains ordered `{ pid, start, end }` intervals, including `IDLE` gaps. `processResults` follows input order and adds `start`, `completion`, `turnaround`, `waiting`, and `response` to each process. Times are integer units.
+
+- **FCFS:** run the ready process with the earliest arrival.
+- **SJF:** run the ready process with the shortest burst. Once a process starts, it runs to completion.
+- **Priority:** run the ready process with the lowest priority number. Once a process starts, it runs to completion.
+
+For all three, only arrived processes are eligible. If none has arrived, time advances to the next arrival and an `IDLE` interval is recorded. For a non-preemptive run, waiting and response are both `start - arrival`; turnaround is `completion - arrival`.
+
 ## Development batches
 
-The project is built in approved batches. Batch 0 establishes the app shell, shared process validation, configuration defaults, and tests. Scheduler rules, comparison behavior, and evaluation details will be documented alongside their implementation.
+The project is built in approved batches. Batch 0 establishes the app shell, shared process validation, configuration defaults, and tests. Batch 1 adds FCFS, non-preemptive SJF, and non-preemptive Priority. Preemptive scheduling, comparison, and evaluation follow in later approved batches.
