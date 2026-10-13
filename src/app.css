@@ -1,0 +1,77 @@
+:root {
+  font-family: "IBM Plex Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  color: var(--foreground);
+  background: var(--background);
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+html,
+body {
+  overflow-x: clip;
+}
+
+.hero-panel {
+  background:
+    radial-gradient(
+      circle at 92% 20%,
+      color-mix(in oklch, var(--primary) 17%, transparent),
+      transparent 44%
+    ),
+    linear-gradient(130deg, var(--card), var(--background));
+}
+
+@media print {
+  @page {
+    margin: 16mm;
+  }
+
+  html.dark {
+    color-scheme: light;
+    --background: #fff;
+    --foreground: #111;
+    --card: #fff;
+    --card-foreground: #111;
+    --muted: #f3f4f6;
+    --muted-foreground: #444;
+    --border: #d1d5db;
+    --primary: #006d51;
+    --primary-foreground: #fff;
+  }
+
+  html,
+  body,
+  .simulator-app {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  .no-print,
+  [aria-label="Gantt playback controls"] {
+    display: none !important;
+  }
+
+  #results {
+    margin: 0 !important;
+  }
+
+  [data-slot="card"] {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+}

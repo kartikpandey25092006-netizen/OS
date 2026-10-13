@@ -61,6 +61,12 @@ function resolveSettings(options) {
   if (options.quantum !== undefined) positiveWhole(options.quantum, "quantum");
   if (options.agingInterval !== undefined)
     positiveWhole(options.agingInterval, "agingInterval");
+  if (
+    options.agingEnabled !== undefined &&
+    typeof options.agingEnabled !== "boolean"
+  ) {
+    throw new RangeError("agingEnabled must be a boolean.");
+  }
   const verificationMargin =
     options.verificationMargin ?? defaults.verificationMargin;
   if (!Number.isFinite(verificationMargin) || verificationMargin < 0) {
@@ -174,7 +180,9 @@ function verificationWarning(processes, choice, options, settings, rrQuantum) {
     const competitorOptions = {
       ...commonOptions,
       ...(competitor === "Round Robin" ? { quantum: rrQuantum } : {}),
-      ...(competitor === "Priority" && options.agingInterval !== undefined
+      ...(competitor === "Priority" &&
+      options.agingEnabled !== false &&
+      options.agingInterval !== undefined
         ? { agingInterval: options.agingInterval }
         : {}),
     };
@@ -228,11 +236,14 @@ export function selectAlgorithm(processes, options = {}) {
     } else {
       explanation += ", so Priority Scheduling was selected.";
     }
-    if (goal === "fairness") {
+    if (goal === "fairness" && options.agingEnabled !== false) {
       agingInterval =
         options.agingInterval ?? Math.max(1, Math.round(stats.medianBurst));
       explanation += ` For fairness, aging improves priority every ${agingInterval} waiting time units.`;
-    } else if (options.agingInterval !== undefined) {
+    } else if (
+      options.agingEnabled !== false &&
+      options.agingInterval !== undefined
+    ) {
       agingInterval = options.agingInterval;
     }
   } else if (stats.burstCV >= thresholds.cvHigh) {

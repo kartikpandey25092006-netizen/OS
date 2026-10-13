@@ -11,6 +11,14 @@ npm run dev
 
 Run checks with `npm test` and `npm run lint`; create a production build with `npm run build`.
 
+## Simulator UI
+
+Edit the process table or load a demo scenario, upload a CSV with `pid,arrival,burst,priority` columns, or generate random processes. Export the current table to CSV when its rows are valid. Use **Run simulation** to compare five baseline algorithms with the adaptive choice. The timeline selector shows each algorithm's Gantt chart; playback controls step, play, pause, and change speed. Results include the decision explanation, comparison chart, metric ranks, a CSV export, and a print view.
+
+The controls set the optimization goal, optional Round Robin quantum, context-switch cost, optional priority aging, and an optional manual priority scale. Lower priority numbers run first. The automatic scale uses the workload's observed minimum and maximum; when priorities differ, the resulting spread ratio is 1, so the priority rule wins. A manual scale can make the priority signal less dominant. Switching theme changes the page between light and dark modes.
+
+The UI uses the user's shadcn preset `b2BVmRw4O` (Nova, emerald, zinc, IBM Plex Sans, Phosphor icons, large radius) with the Vite template, matching this repository's existing React/Vite setup.
+
 ## Architecture
 
 - `src/engine/` contains pure JavaScript scheduling logic and validation. Engine modules do not import React or browser APIs.
@@ -85,7 +93,7 @@ With the default `goal: "waiting"`, the first matching rule wins:
 
 The thresholds live in `src/engine/config.js` and can be overridden with `options.thresholds`. `moderateDefault: "FCFS"` changes the waiting-goal fallback. Round Robin uses the median burst for its quantum by default; `rrQuantum: "mean"` switches to mean burst, and `quantum` overrides either. Derived quanta are rounded to the nearest positive integer because the schedulers use integer time units.
 
-Set `goal` to `"response"` or `"fairness"` to adapt the choice within these branches. Response mode favors Round Robin for high-CV batch arrivals and moderate variation. Fairness mode favors Round Robin outside the priority branch; within that branch it enables aging, using the rounded median burst as its interval unless `agingInterval` is supplied. A priority signal still takes precedence over other rules.
+Set `goal` to `"response"` or `"fairness"` to adapt the choice within these branches. Response mode favors Round Robin for high-CV batch arrivals and moderate variation. Fairness mode favors Round Robin outside the priority branch; within that branch it enables aging, using the rounded median burst as its interval unless `agingInterval` is supplied. Set `agingEnabled: false` to disable this automatic aging even in fairness mode. A priority signal still takes precedence over other rules.
 
 By default, hybrid verification simulates the selected algorithm and three competitors, comparing average waiting time, average response time, or Jain's waiting-time fairness index according to the goal. If a competitor improves the goal metric by **more than** `verificationMargin` (default `0.05`, or 5% relative to the selected score), `verificationWarning` describes the best improvement. The rule-based choice remains the result. Set `verify: false` to skip these simulations.
 
@@ -99,4 +107,4 @@ By default, hybrid verification simulates the selected algorithm and three compe
 
 ## Development batches
 
-The project is built in approved batches. Batch 0 establishes the app shell, shared process validation, configuration defaults, and tests. Batch 1 adds FCFS, non-preemptive SJF, and non-preemptive Priority. Batch 2 adds SRTF, Round Robin, preemptive Priority, context-switch overhead, and aging. Batch 3 adds metrics and randomized scheduling invariants. Batch 4 adds the adaptive selector and hybrid verification. Batch 5 adds comparison, ranking, and regret. Evaluation follows in later approved batches.
+The project is built in approved batches. Batch 0 establishes the app shell, shared process validation, configuration defaults, and tests. Batch 1 adds FCFS, non-preemptive SJF, and non-preemptive Priority. Batch 2 adds SRTF, Round Robin, preemptive Priority, context-switch overhead, and aging. Batch 3 adds metrics and randomized scheduling invariants. Batch 4 adds the adaptive selector and hybrid verification. Batch 5 adds comparison, ranking, and regret. Batch 6 adds the interactive UI and visualizations. Evaluation follows in later approved batches.

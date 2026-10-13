@@ -109,7 +109,9 @@ export function compare(processes, options = {}) {
     const schedulerOptions = {
       contextSwitchCost,
       ...(algorithm === "Round Robin" ? { quantum } : {}),
-      ...(algorithm === "Priority" && options.agingInterval !== undefined
+      ...(algorithm === "Priority" &&
+      options.agingEnabled !== false &&
+      options.agingInterval !== undefined
         ? { agingInterval: options.agingInterval }
         : {}),
       ...(name === "Adaptive" && selection.priorityTieBreak
