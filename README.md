@@ -68,6 +68,27 @@ Pass any scheduler's `{ gantt, processResults }` to `calculateMetrics` from `src
 
 The metrics function does not change the schedule. Its fairness measure describes how evenly waiting time is distributed; it does not imply that a larger wait is desirable.
 
+## Adaptive selector
+
+`selectAlgorithm(processes, options)` in `src/engine/selector.js` returns an algorithm choice, its computed `stats`, a `ruleFired` identifier, a numerical `explanation`, and a separate `verificationWarning` (or `null`). A Round Robin choice includes `quantum`. The mixed Priority choice includes `priorityTieBreak: "sjf"`; a fairness-oriented Priority choice also includes `agingInterval`. Use `runAlgorithm` from `src/engine/algorithms.js` to run the choice, passing its applicable scheduler options and any requested context-switch cost.
+
+The selector calculates burst CV as population standard deviation divided by mean burst, priority spread as `(max priority - min priority) / priority scale range`, and arrival stagger as `(max arrival - min arrival) / mean burst`. The priority scale defaults to the workload's actual minimum and maximum. With this default, any workload containing distinct priority values has a spread ratio of 1 and enters the priority rule. Set `priorityMin` and `priorityMax` to use a manual scale that covers every input priority. A zero priority range produces a spread ratio of zero; a zero burst is rejected by process validation.
+
+With the default `goal: "waiting"`, the first matching rule wins:
+
+| Rule                 | Threshold    | Choice                                                         |
+| -------------------- | ------------ | -------------------------------------------------------------- |
+| Priority spread      | `>= 0.40`    | Priority; add SJF tie-breaking when burst CV is also `>= 0.45` |
+| High burst variation | CV `>= 0.45` | SRTF when arrival stagger is `>= 0.30`; otherwise SJF          |
+| Low burst variation  | CV `< 0.25`  | Round Robin                                                    |
+| Moderate variation   | Otherwise    | SJF                                                            |
+
+The thresholds live in `src/engine/config.js` and can be overridden with `options.thresholds`. `moderateDefault: "FCFS"` changes the waiting-goal fallback. Round Robin uses the median burst for its quantum by default; `rrQuantum: "mean"` switches to mean burst, and `quantum` overrides either. Derived quanta are rounded to the nearest positive integer because the schedulers use integer time units.
+
+Set `goal` to `"response"` or `"fairness"` to adapt the choice within these branches. Response mode favors Round Robin for high-CV batch arrivals and moderate variation. Fairness mode favors Round Robin outside the priority branch; within that branch it enables aging, using the rounded median burst as its interval unless `agingInterval` is supplied. A priority signal still takes precedence over other rules.
+
+By default, hybrid verification simulates the selected algorithm and three competitors, comparing average waiting time, average response time, or Jain's waiting-time fairness index according to the goal. If a competitor improves the goal metric by **more than** `verificationMargin` (default `0.05`, or 5% relative to the selected score), `verificationWarning` describes the best improvement. The rule-based choice remains the result. Set `verify: false` to skip these simulations.
+
 ## Development batches
 
-The project is built in approved batches. Batch 0 establishes the app shell, shared process validation, configuration defaults, and tests. Batch 1 adds FCFS, non-preemptive SJF, and non-preemptive Priority. Batch 2 adds SRTF, Round Robin, preemptive Priority, context-switch overhead, and aging. Batch 3 adds metrics and randomized scheduling invariants. Comparison and evaluation follow in later approved batches.
+The project is built in approved batches. Batch 0 establishes the app shell, shared process validation, configuration defaults, and tests. Batch 1 adds FCFS, non-preemptive SJF, and non-preemptive Priority. Batch 2 adds SRTF, Round Robin, preemptive Priority, context-switch overhead, and aging. Batch 3 adds metrics and randomized scheduling invariants. Batch 4 adds the adaptive selector and hybrid verification. Comparison and evaluation follow in later approved batches.

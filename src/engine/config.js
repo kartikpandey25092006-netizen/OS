@@ -8,6 +8,8 @@ export const DEFAULT_OPTIONS = Object.freeze({
     staggered: 0.3,
     moderateDefault: "SJF",
     rrQuantum: "median",
+    goal: "waiting",
+    verificationMargin: 0.05,
   }),
   contextSwitchCost: 0,
   roundRobinQuantum: 4,
