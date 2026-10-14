@@ -11,6 +11,15 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: "./tests/setup.js",
-    coverage: { reporter: ["text", "html"] },
+    coverage: {
+      include: ["src/engine/**"],
+      reporter: ["text", "html", "json-summary"],
+      thresholds: {
+        statements: 90,
+        branches: 90,
+        functions: 90,
+        lines: 90,
+      },
+    },
   },
 });
