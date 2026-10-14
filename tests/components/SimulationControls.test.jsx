@@ -52,6 +52,20 @@ describe("SimulationControls", () => {
     });
   });
 
+  it("lets fairness aging use the workload-derived interval", () => {
+    const options = controlsToOptions(
+      {
+        ...DEFAULT_CONTROLS,
+        goal: "fairness",
+        agingEnabled: true,
+        agingInterval: "",
+      },
+      processes,
+    );
+    expect(options.agingEnabled).toBe(true);
+    expect(options).not.toHaveProperty("agingInterval");
+  });
+
   it("rejects invalid quantum, switch cost, aging interval, and scale", () => {
     expect(() =>
       controlsToOptions({ ...DEFAULT_CONTROLS, quantum: "0" }, processes),

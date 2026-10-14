@@ -38,11 +38,13 @@ export function controlsToOptions(controls, processes) {
     options.quantum = integerField(controls.quantum, "Quantum", 1);
   }
   if (controls.agingEnabled) {
-    options.agingInterval = integerField(
-      controls.agingInterval,
-      "Aging interval",
-      1,
-    );
+    if (String(controls.agingInterval).trim() !== "") {
+      options.agingInterval = integerField(
+        controls.agingInterval,
+        "Aging interval",
+        1,
+      );
+    }
   }
   if (controls.priorityScaleMode === "manual") {
     const priorityMin = integerField(

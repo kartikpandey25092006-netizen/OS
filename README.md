@@ -19,6 +19,14 @@ The controls set the optimization goal, optional Round Robin quantum, context-sw
 
 The UI uses the user's shadcn preset `b2BVmRw4O` (Nova, emerald, zinc, IBM Plex Sans, Phosphor icons, large radius) with the Vite template, matching this repository's existing React/Vite setup.
 
+## Workload evaluation and tuning
+
+Open **Evaluation** in the app to run a seeded sample and inspect agreement, regret, the selected-versus-best confusion matrix, threshold sensitivity, and failure cases. The default run uses **50 generated workloads** with seed `2026`. The workload generator cycles through uniform bursts, high-variance bursts, batch arrivals, staggered arrivals, priority-heavy workloads, and mixed workloads; each has 3–50 processes. The same seed produces the same workloads. Use **Apply tuned thresholds** to carry the four thresholds, moderate-variation fallback, Round Robin quantum rule, and evaluated goal into the simulator. This also restores the evaluation's automatic quantum, zero context-switch cost, observed priority scale, and automatic fairness aging settings. **Export JSON** records the run's settings and detailed cases.
+
+Run the reproducible command-line summary with `npm run evaluate`. Its 50-workload results are recorded in [docs/evaluation-50.md](docs/evaluation-50.md). For each workload, the empirical best is the best score among the five fixed schedulers; ties count as agreement with any tied algorithm. Mean regret uses the Batch 5 signed formula, so a negative fairness regret means the selected schedule fell below the best fairness score. The search maximizes agreement and uses mean positive shortfall to break ties. It evaluates the default configuration first, so the tuned agreement cannot be lower on the same sample.
+
+The reported improvement is measured on the same seeded sample used for tuning. It is an in-sample result, not a claim of performance on unseen workloads. The automatic priority scale makes a distinct-priority workload's spread ratio 1; the searched `priorityHigh: 1.05` effectively turns that rule off for these generated workloads. Use a different seed or manual priority scale when exploring how stable that decision is.
+
 ## Architecture
 
 - `src/engine/` contains pure JavaScript scheduling logic and validation. Engine modules do not import React or browser APIs.
@@ -107,4 +115,4 @@ By default, hybrid verification simulates the selected algorithm and three compe
 
 ## Development batches
 
-The project is built in approved batches. Batch 0 establishes the app shell, shared process validation, configuration defaults, and tests. Batch 1 adds FCFS, non-preemptive SJF, and non-preemptive Priority. Batch 2 adds SRTF, Round Robin, preemptive Priority, context-switch overhead, and aging. Batch 3 adds metrics and randomized scheduling invariants. Batch 4 adds the adaptive selector and hybrid verification. Batch 5 adds comparison, ranking, and regret. Batch 6 adds the interactive UI and visualizations. Evaluation follows in later approved batches.
+The project is built in approved batches. Batch 0 establishes the app shell, shared process validation, configuration defaults, and tests. Batch 1 adds FCFS, non-preemptive SJF, and non-preemptive Priority. Batch 2 adds SRTF, Round Robin, preemptive Priority, context-switch overhead, and aging. Batch 3 adds metrics and randomized scheduling invariants. Batch 4 adds the adaptive selector and hybrid verification. Batch 5 adds comparison, ranking, and regret. Batch 6 adds the interactive UI and visualizations. Batch 7 adds the 50-workload evaluation and threshold search.

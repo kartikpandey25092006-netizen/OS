@@ -125,10 +125,14 @@ export function SimulationControls({ controls, onChange }) {
               type="number"
               min="1"
               step="1"
+              placeholder="Auto: median burst"
               value={controls.agingInterval}
               onChange={(event) => update("agingInterval", event.target.value)}
               className={inputClass}
             />
+            <span className="mt-1 block text-xs font-normal text-muted-foreground">
+              Leave blank to use the rounded median burst.
+            </span>
           </label>
         )}
       </div>
