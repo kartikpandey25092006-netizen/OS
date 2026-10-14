@@ -9,7 +9,12 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { ALGORITHM_NAMES } from "../../engine/config.js";
+import {
+  COMPARISON_DISPLAY_NAMES,
+  PREEMPTIVE_PRIORITY_NAME,
+  comparisonDisplayName,
+  comparisonDisplayResult,
+} from "./comparisonDisplay.js";
 import {
   formatNumber,
   formatPercent,
@@ -25,9 +30,10 @@ export function ComparisonChart({ comparison }) {
   );
   const metric =
     RESULT_METRICS.find(({ key }) => key === metricKey) ?? RESULT_METRICS[0];
-  const data = [...ALGORITHM_NAMES, "Adaptive"].map((name) => ({
-    name,
-    value: metric.getValue(comparison.results[name].metrics),
+  const data = COMPARISON_DISPLAY_NAMES.map((key) => ({
+    key,
+    name: comparisonDisplayName(key),
+    value: metric.getValue(comparisonDisplayResult(comparison, key).metrics),
   }));
   const formatValue = metric.fraction ? formatPercent : formatNumber;
 
@@ -45,7 +51,8 @@ export function ComparisonChart({ comparison }) {
             Compare algorithms
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Adaptive is highlighted in the primary color.
+            Adaptive is highlighted. Preemptive Priority is shown separately
+            from the five ranked baselines.
           </p>
         </div>
         <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -65,8 +72,8 @@ export function ComparisonChart({ comparison }) {
       </div>
       <div
         role="img"
-        aria-label={`${metric.label} comparison chart for five fixed algorithms and the adaptive choice`}
-        className="h-72 w-full"
+        aria-label={`${metric.label} comparison chart for six fixed scheduling modes and the adaptive choice`}
+        className="h-80 w-full"
       >
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
@@ -96,7 +103,7 @@ export function ComparisonChart({ comparison }) {
             <YAxis
               type="category"
               dataKey="name"
-              width={93}
+              width={174}
               tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
             />
             <Tooltip
@@ -104,11 +111,15 @@ export function ComparisonChart({ comparison }) {
               cursor={{ fill: "var(--accent)", opacity: 0.55 }}
             />
             <Bar dataKey="value" radius={[0, 5, 5, 0]} maxBarSize={27}>
-              {data.map(({ name }) => (
+              {data.map(({ key }) => (
                 <Cell
-                  key={name}
+                  key={key}
                   fill={
-                    name === "Adaptive" ? "var(--chart-3)" : "var(--chart-1)"
+                    key === "Adaptive"
+                      ? "var(--chart-3)"
+                      : key === PREEMPTIVE_PRIORITY_NAME
+                        ? "var(--chart-2)"
+                        : "var(--chart-1)"
                   }
                 />
               ))}

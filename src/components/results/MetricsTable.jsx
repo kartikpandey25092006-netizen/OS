@@ -1,11 +1,16 @@
 import React from "react";
-import { ALGORITHM_NAMES } from "../../engine/config.js";
+import {
+  COMPARISON_DISPLAY_NAMES,
+  PREEMPTIVE_PRIORITY_NAME,
+  comparisonDisplayName,
+  comparisonDisplayResult,
+} from "./comparisonDisplay.js";
 import { formatNumber, formatPercent } from "./resultFormatting.js";
 
 /** Every algorithm uses the same metric definitions and goal rank. */
 export function MetricsTable({ comparison }) {
-  const names = [...ALGORITHM_NAMES, "Adaptive"];
-  const { results, adaptive } = comparison;
+  const names = COMPARISON_DISPLAY_NAMES;
+  const { adaptive } = comparison;
 
   return (
     <section
@@ -58,7 +63,7 @@ export function MetricsTable({ comparison }) {
           </thead>
           <tbody>
             {names.map((name) => {
-              const result = results[name];
+              const result = comparisonDisplayResult(comparison, name);
               const { metrics } = result;
               const highlighted = name === "Adaptive";
               return (
@@ -71,7 +76,7 @@ export function MetricsTable({ comparison }) {
                   }
                 >
                   <th scope="row" className="whitespace-nowrap px-4 py-3">
-                    {name}
+                    {comparisonDisplayName(name)}
                     {highlighted && (
                       <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
                         {adaptive.algorithm}
@@ -97,7 +102,9 @@ export function MetricsTable({ comparison }) {
                     {formatNumber(metrics.jainsFairnessIndex, 3)}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">
-                    #{result.ranks[adaptive.metric]}
+                    {name === PREEMPTIVE_PRIORITY_NAME
+                      ? "—"
+                      : `#${result.ranks[adaptive.metric]}`}
                   </td>
                 </tr>
               );
@@ -105,6 +112,10 @@ export function MetricsTable({ comparison }) {
           </tbody>
         </table>
       </div>
+      <p className="mt-3 text-xs text-muted-foreground">
+        Preemptive Priority is a supplemental comparison. Adaptive goal ranks
+        use the original five fixed algorithms.
+      </p>
     </section>
   );
 }

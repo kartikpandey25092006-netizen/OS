@@ -14,6 +14,16 @@ export const PRESET_SCENARIOS = [
     ],
   },
   {
+    id: "priority-preemption",
+    label: "Priority preemption",
+    description: "A high-priority arrival interrupts a running process.",
+    processes: [
+      { pid: "P1", arrival: 0, burst: 8, priority: 5 },
+      { pid: "P2", arrival: 2, burst: 2, priority: 1 },
+      { pid: "P3", arrival: 3, burst: 2, priority: 3 },
+    ],
+  },
+  {
     id: "staggered",
     label: "Staggered high variance",
     description: "Uneven bursts and spaced arrivals favor SRTF.",
@@ -54,11 +64,9 @@ export const PRESET_SCENARIOS = [
   },
 ];
 
-export const DEFAULT_PROCESSES = PRESET_SCENARIOS[1].processes.map(
-  (process) => ({
-    ...process,
-  }),
-);
+export const DEFAULT_PROCESSES = PRESET_SCENARIOS.find(
+  (preset) => preset.id === "staggered",
+).processes.map((process) => ({ ...process }));
 
 export function copyPreset(id) {
   const preset = PRESET_SCENARIOS.find((item) => item.id === id);

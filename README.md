@@ -17,6 +17,8 @@ Edit the process table or load a demo scenario, upload a CSV with `pid,arrival,b
 
 The controls set the optimization goal, optional Round Robin quantum, context-switch cost, optional priority aging, and an optional manual priority scale. Lower priority numbers run first. The automatic scale uses the workload's observed minimum and maximum; when priorities differ, the resulting spread ratio is 1, so the priority rule wins. A manual scale can make the priority signal less dominant. Switching theme changes the page between light and dark modes.
 
+Use the **Priority preemption** demo preset to compare the two Priority modes: P1 starts at time 0 with priority 5, then P2 arrives at time 2 with higher priority 1. The preemptive timeline interrupts P1; the non-preemptive timeline lets P1 finish first.
+
 The UI uses the user's shadcn preset `b2BVmRw4O` (Nova, emerald, zinc, IBM Plex Sans, Phosphor icons, large radius) with the Vite template, matching this repository's existing React/Vite setup.
 
 ## Workload evaluation and tuning
@@ -109,7 +111,7 @@ By default, hybrid verification simulates the selected algorithm and three compe
 
 ## Comparison engine
 
-`compare(processes, options)` in `src/engine/compare.js` runs FCFS, SJF, SRTF, Priority, Round Robin, and the adaptive choice on the same workload. It returns `{ selection, results, rankings, adaptive }`. Each `results` entry contains the complete `schedule`, its `metrics`, and metric `ranks`; `results.Adaptive` is a separate run that applies the selector's Priority tie-breaking or aging when chosen. The baseline Priority run is non-preemptive and uses aging only when `agingInterval` is supplied. The baseline Round Robin run uses the same median/mean-derived quantum (or explicit override) as the selector.
+`compare(processes, options)` in `src/engine/compare.js` runs FCFS, SJF, SRTF, non-preemptive Priority, Round Robin, and the adaptive choice on the same workload. It returns `{ selection, results, priorityPreemptive, rankings, adaptive }`. Each `results` entry contains the complete `schedule`, its `metrics`, and metric `ranks`; `results.Adaptive` is a separate run that applies the selector's Priority tie-breaking or aging when chosen. `priorityPreemptive` contains a supplemental preemptive Priority schedule and metrics, displayed as a separate bar, timeline option, and table row. It is not included in the original five-algorithm adaptive rankings, CSV export, or Batch 7 tuning, so its goal-rank cell is blank. Both Priority modes use the same explicit aging interval, when supplied. The baseline Round Robin run uses the same median/mean-derived quantum (or explicit override) as the selector.
 
 `rankings` contains sorted `{ name, value, rank }` entries for average waiting, turnaround, and response times; CPU utilization, throughput, makespan, maximum wait, Jain's fairness index, busy time, idle time, and context-switch time. Higher utilization, throughput, fairness, and busy time rank better; lower times rank better. Busy time should tie for every completed schedule on the same workload. Numerically equal scores share a competition rank: `1, 1, 3`. Floating scores within a relative `1e-12` tolerance count as tied.
 

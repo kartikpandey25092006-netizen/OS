@@ -97,7 +97,7 @@ function regretFor(value, bestValue) {
   return (value - bestValue) / bestValue;
 }
 
-/** Compare all five baseline schedulers and the adaptive decision on one workload. */
+/** Compare five ranked baselines and the adaptive choice, with a supplemental Priority mode. */
 export function compare(processes, options = {}) {
   const selection = selectAlgorithm(processes, options);
   const contextSwitchCost = contextSwitchCostFrom(options);
@@ -129,6 +129,18 @@ export function compare(processes, options = {}) {
     };
   }
 
+  const preemptivePrioritySchedule = runAlgorithm("Priority", processes, {
+    preemptive: true,
+    contextSwitchCost,
+    ...(options.agingEnabled !== false && options.agingInterval !== undefined
+      ? { agingInterval: options.agingInterval }
+      : {}),
+  });
+  const priorityPreemptive = {
+    schedule: preemptivePrioritySchedule,
+    metrics: calculateMetrics(preemptivePrioritySchedule),
+  };
+
   const rankings = Object.fromEntries(
     METRICS.map(({ key, value, better }) => [
       key,
@@ -144,6 +156,7 @@ export function compare(processes, options = {}) {
   return {
     selection,
     results,
+    priorityPreemptive,
     rankings,
     adaptive: {
       algorithm: selection.algorithm,

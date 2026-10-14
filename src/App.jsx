@@ -1,11 +1,15 @@
 import React, { Suspense, useEffect, useState } from "react";
 import { Cpu, Moon, Play, Sun } from "@phosphor-icons/react";
-import { ALGORITHM_NAMES } from "./engine/config.js";
 import { compare } from "./engine/compare.js";
 import { validateProcesses } from "./engine/validate.js";
 import { GanttChart } from "./components/GanttChart.jsx";
 import { ProcessTable } from "./components/ProcessTable.jsx";
 import { DEFAULT_PROCESSES } from "./components/processInputs.js";
+import {
+  COMPARISON_DISPLAY_NAMES,
+  comparisonDisplayName,
+  comparisonDisplayResult,
+} from "./components/results/comparisonDisplay.js";
 import { SimulationControls } from "./components/SimulationControls.jsx";
 import {
   controlsToOptions,
@@ -17,7 +21,10 @@ import { Card, CardContent, CardHeader } from "./components/ui/card.jsx";
 import "./styles.css";
 import "./app.css";
 
-const TIMELINE_NAMES = ["Adaptive", ...ALGORITHM_NAMES];
+const TIMELINE_NAMES = [
+  "Adaptive",
+  ...COMPARISON_DISPLAY_NAMES.filter((name) => name !== "Adaptive"),
+];
 const ResultsView = React.lazy(() =>
   import("./components/results/ResultsView.jsx").then(({ ResultsView }) => ({
     default: ResultsView,
@@ -92,11 +99,13 @@ export function App() {
     setView("simulator");
   }
 
-  const timelineResult = comparison?.results[timelineName];
+  const timelineResult = comparison
+    ? comparisonDisplayResult(comparison, timelineName)
+    : null;
   const timelineTitle =
     timelineName === "Adaptive" && comparison
       ? `Adaptive · ${comparison.selection.algorithm}`
-      : timelineName;
+      : comparisonDisplayName(timelineName);
 
   return (
     <main className="simulator-app min-h-screen bg-background text-foreground">
@@ -172,13 +181,13 @@ export function App() {
                   Adaptive CPU Scheduling Simulator
                 </h1>
                 <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-                  Build a workload, compare five scheduling algorithms, and
-                  inspect why the adaptive rule chose its result. Follow each
-                  process through the execution timeline.
+                  Build a workload, compare five algorithm families and both
+                  Priority modes, and inspect why the adaptive rule chose its
+                  result. Follow each process through the execution timeline.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-2 text-xs font-medium text-muted-foreground">
                   <span className="rounded-full border border-border bg-background/70 px-3 py-1.5">
-                    5 schedulers
+                    6 fixed modes
                   </span>
                   <span className="rounded-full border border-border bg-background/70 px-3 py-1.5">
                     3 optimization goals
@@ -275,7 +284,7 @@ export function App() {
                           <option key={name} value={name}>
                             {name === "Adaptive"
                               ? `Adaptive (${comparison.selection.algorithm})`
-                              : name}
+                              : comparisonDisplayName(name)}
                           </option>
                         ))}
                       </select>
